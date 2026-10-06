@@ -29,7 +29,7 @@ class ShortUrlCreateView(APIView):
         serializer = UrlShortenerSerializer(data=request.data)
         if not serializer.is_valid():
             logger.error("Invalid payload", extra={"errors": serializer.errors})
-            return Response(serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         code = generate_unique_code()
         long_url = serializer.validated_data["url"]

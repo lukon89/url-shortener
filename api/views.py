@@ -5,4 +5,4 @@ from rest_framework.response import Response
 class HelloView(APIView):
 
     def get(self, request):
-        return Response({"message": "dummy message"})
+        return Response({"message": "Hello!"})

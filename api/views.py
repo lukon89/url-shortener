@@ -3,12 +3,13 @@ import random
 import string
 
 from django.shortcuts import render
+from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.request import Request
 
 
-from .serializers import UrlShortenerSerializer
+from .serializers import UrlShortenerSerializer, ShortUrlCreateResponseSerializer, ShortUrlResolveResponseSerializer
 from .db import urls_storage
 
 logger = logging.getLogger(__name__)
@@ -29,12 +30,17 @@ class ShortUrlCreateView(APIView):
         if not serializer.is_valid():
             logger.error("Invalid payload", extra={"errors": serializer.errors})
             return Response(serializer.errors)
-        
+
         code = generate_unique_code()
         long_url = serializer.validated_data["url"]
         urls_storage[code] = serializer.validated_data["url"]
         logger.info(f"Code {code} generated for long url {long_url}")
-        return Response({"short_url": request.build_absolute_uri(f'/shrt/{code}')})
+        response = ShortUrlCreateResponseSerializer(data={"short_url": request.build_absolute_uri(f'/shrt/{code}')})
+        if not response.is_valid():
+            logger.error("Invalid response data", extra={"errors": response.errors})
+            return Response({"error": "Internal error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response(response.data)
     
 
 class ShortUrlResolveView(APIView):
@@ -42,7 +48,12 @@ class ShortUrlResolveView(APIView):
     def get(self, request: Request, code: str) -> Response:
         long_url = urls_storage.get(code)
         if not long_url:
-            return Response({"error": "Not found"}, status=404)
-        
+            return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+
         logger.info(f"Long url {long_url} found for code {code}")
-        return Response({"original_url": long_url})
+        response = ShortUrlResolveResponseSerializer(data={"long_url": long_url})
+        if not response.is_valid():
+            logger.error("Corrupted data in storage", extra={"code": code, "errors": response.errors})
+            return Response({"error": "Internal error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response(response.data)

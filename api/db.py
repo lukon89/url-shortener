@@ -1,1 +1,1 @@
-urls: dict[str, str] = {}
+urls_storage: dict[str, str] = {}

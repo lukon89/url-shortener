@@ -4,7 +4,7 @@ import requests
 from django.test import LiveServerTestCase
 from rest_framework import status
 
-from .db import urls_storage
+from api.db import urls_storage
 
 SHORT_URL_PATTERN = re.compile(r"https?://.+/shrt/[a-zA-Z0-9]{6}$")
 
@@ -27,11 +27,11 @@ class ShortUrlCreateE2ETest(LiveServerTestCase):
 
     def test_invalid_url_returns_400(self):
         response = requests.post(f"{self.live_server_url}/api/shrt/", json={"url": "not-a-url"})
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_missing_field_returns_400(self):
         response = requests.post(f"{self.live_server_url}/api/shrt/", json={})
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
 class ShortUrlResolveE2ETest(LiveServerTestCase):
@@ -44,7 +44,7 @@ class ShortUrlResolveE2ETest(LiveServerTestCase):
 
     def test_nonexistent_code_returns_404(self):
         response = requests.get(f"{self.live_server_url}/api/shrt/doesnotexist/")
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
 class ShortUrlFlowE2ETest(LiveServerTestCase):
@@ -62,11 +62,11 @@ class ShortUrlFlowE2ETest(LiveServerTestCase):
         long_url = "https://example.com/very/long/url"
 
         post_response = requests.post(f"{self.live_server_url}/api/shrt/", json={"url": long_url})
-        self.assertEqual(post_response.status_code, 200)
+        self.assertEqual(post_response.status_code, status.HTTP_200_OK)
 
         code = self._extract_code(post_response.json()["short_url"])
         get_response = requests.get(f"{self.live_server_url}/api/shrt/{code}/")
-        self.assertEqual(get_response.status_code, 200)
+        self.assertEqual(get_response.status_code, status.HTTP_200_OK)
         self.assertEqual(get_response.json()["long_url"], long_url)
 
     def test_multiple_urls_resolve_independently(self):

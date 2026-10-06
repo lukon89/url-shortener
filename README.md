@@ -75,12 +75,26 @@ Errors:
 | `404` | Code not found |
 | `500` | Corrupted data in storage |
 
+## Manual testing
+
+**1. Create a shortened URL:**
+```bash
+curl -X POST http://localhost:8000/api/shrt/ \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://example.com/very/long/url"}'
+```
+
+**2. Retrieve the long URL from a code:**
+```bash
+curl http://localhost:8000/api/shrt/<code>/
+```
+
 ## Testing
 
 ### Unit tests
 
 ```bash
-python manage.py test api
+python manage.py test api.tests.test_views
 ```
 
 ### E2E tests
@@ -88,7 +102,13 @@ python manage.py test api
 Uses `LiveServerTestCase` — starts a real HTTP server automatically, no manual setup needed.
 
 ```bash
-python manage.py test api.e2e_tests
+python manage.py test api.tests.test_e2e
+```
+
+### All tests
+
+```bash
+python manage.py test api
 ```
 
 ## Dependencies

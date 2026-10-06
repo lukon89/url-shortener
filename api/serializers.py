@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 
-class UrlShortenerSerializer(serializers.Serializer):
+class ShortenUrlSerializer(serializers.Serializer):
     url = serializers.URLField()
 
 

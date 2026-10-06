@@ -2,14 +2,13 @@ import logging
 import random
 import string
 
-from django.shortcuts import render
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.request import Request
 
 
-from .serializers import UrlShortenerSerializer, ShortUrlCreateResponseSerializer, ShortUrlResolveResponseSerializer
+from .serializers import ShortenUrlSerializer, ShortUrlCreateResponseSerializer, ShortUrlResolveResponseSerializer
 from .db import urls_storage
 
 logger = logging.getLogger(__name__)
@@ -26,14 +25,14 @@ def generate_unique_code() -> str:
 class ShortUrlCreateView(APIView):
 
     def post(self, request: Request) -> Response:
-        serializer = UrlShortenerSerializer(data=request.data)
+        serializer = ShortenUrlSerializer(data=request.data)
         if not serializer.is_valid():
-            logger.error("Invalid payload", extra={"errors": serializer.errors})
+            logger.warning("Invalid payload", extra={"errors": serializer.errors})
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         code = generate_unique_code()
         long_url = serializer.validated_data["url"]
-        urls_storage[code] = serializer.validated_data["url"]
+        urls_storage[code] = long_url
         logger.info(f"Code {code} generated for long url {long_url}")
         response = ShortUrlCreateResponseSerializer(data={"short_url": request.build_absolute_uri(f'/shrt/{code}')})
         if not response.is_valid():

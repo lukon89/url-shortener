@@ -2,6 +2,7 @@ import re
 
 import requests
 from django.test import LiveServerTestCase
+from rest_framework import status
 
 from .db import urls_storage
 
@@ -18,7 +19,7 @@ class ShortUrlCreateE2ETest(LiveServerTestCase):
 
     def test_valid_url_returns_200(self):
         response = requests.post(f"{self.live_server_url}/api/shrt/", json={"url": "https://example.com"})
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_response_short_url_matches_format(self):
         response = requests.post(f"{self.live_server_url}/api/shrt/", json={"url": "https://example.com"})
@@ -77,12 +78,12 @@ class ShortUrlFlowE2ETest(LiveServerTestCase):
         codes = []
         for url in urls:
             response = requests.post(f"{self.live_server_url}/api/shrt/", json={"url": url})
-            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
             codes.append(self._extract_code(response.json()["short_url"]))
 
         self.assertEqual(len(set(codes)), len(urls))
 
         for code, expected_url in zip(codes, urls):
             response = requests.get(f"{self.live_server_url}/api/shrt/{code}/")
-            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
             self.assertEqual(response.json()["long_url"], expected_url)

@@ -1,0 +1,1 @@
+urls: dict[str, str] = {}

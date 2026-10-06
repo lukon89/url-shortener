@@ -1,4 +1,7 @@
-from django.urls import path, include
-from .views import HelloView
+from django.urls import path
+from .views import ShortUrlCreateView, ShortUrlResolveView
 
-urlpatterns = [path("hello/", HelloView.as_view())]
+urlpatterns = [
+    path("shrt/", ShortUrlCreateView.as_view()),
+    path("shrt/<str:code>/", ShortUrlResolveView.as_view()),
+]
